@@ -35,14 +35,15 @@ def get_links_with_produkte(url):
 
 
 # Пример использования
-website_url = "https://www.avista-lubes.de/produkte/"  # Замените на нужный URL
+# website_url = "https://www.avista-lubes.de/produkte/"  # Замените на нужный URL
+website_url = "https://www.avista-lubes.de/produkte/peak/"  # Замените на нужный URL
 produkte_links = get_links_with_produkte(website_url)
 
-product_ranges = []
-
-for link in produkte_links:
-    if link != website_url:
-        product_ranges.append(link)
+# product_ranges = []
+#
+# for link in produkte_links:
+#     if link != website_url:
+#         product_ranges.append(link)
 
 prefinal_produkte_links = []
 
@@ -58,18 +59,67 @@ with open('linklist.txt', 'w') as file:
         file.write('\n')
 
 
-'''
-div class="sizes "
-"Gebindegrößen:"
-"ART. - NR:"
-"EAN:"
-"VE:"
-'''
+for url in prefinal_produkte_links:
+    response = requests.get(url)
+    response.raise_for_status()  # Проверяем на ошибки
 
-def Product():
-    volume = 'Gebindegrößen:'
-    pnumber = 'ART. - NR:'
-    ean = 'EAN:'
-    ve = 'VE:'
+    # Парсим HTML-контент
+    soup = BeautifulSoup(response.text, 'html.parser')
 
+    # Находим название продукта на странице
+    product_name = soup.find('h1').text
 
+    # Находим все данные на странице
+    product_table = soup.find('div', class_=lambda x: x and x.strip() == 'sizes')
+
+    soup = product_table
+
+    # Находим все div-блоки с размерами (они имеют классы bulk, literXXXX и т.д.)
+    size_blocks = soup.find_all('div', class_=lambda x: x and (
+            'bulk' in x or
+            'liter' in x or
+            x.startswith('liter')
+    ))
+
+    results = []
+
+    for block in size_blocks:
+        # Извлекаем название размера из класса
+        size_class = ' '.join([c for c in block.get('class', []) if c != 'noorder'])
+        size_name = size_class.replace('liter', '').replace('bulk', 'lose Ware').strip()
+
+        # Проверяем доступность товара
+        available = 'noorder' not in block.get('class', [])
+
+        # Извлекаем все данные из блока
+        data = {
+            'Gebindegrößen': None,
+            'ART. - NR': None,
+            'EAN': None,
+            'VE': None,
+            'Available': available
+        }
+
+        # Парсим каждое поле
+        for p in block.find_all('p'):
+            small = p.find('small')
+            if small:
+                key = small.get_text(strip=True).replace(':', '').strip()
+
+                # Получаем значение
+                if p.find('span'):
+                    value = p.find('span').get_text(strip=True)
+                else:
+                    value = small.next_sibling.strip() if small.next_sibling else ""
+
+                data[key] = value
+
+        if data['Available'] == available:
+            with open('avista.txt', 'a') as file:
+                file.write(product_name)
+                file.write('\t')
+            with open('avista.txt', 'a') as file:
+                for item in data:
+                    file.write(item)
+                    file.write('\t')
+                file.write('\n')
