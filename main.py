@@ -119,7 +119,10 @@ for url in prefinal_produkte_links:
                 file.write(product_name)
                 file.write('\t')
             with open('avista.txt', 'a') as file:
-                for item in data:
-                    file.write(item)
+                for k in data:
+                    try:
+                        file.write(data[k])
+                    except:
+                        pass
                     file.write('\t')
                 file.write('\n')
