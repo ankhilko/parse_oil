@@ -69,8 +69,6 @@ for url in prefinal_produkte_links:
     # Находим название продукта на странице
     product_name = soup.find('h1').text
 
-    print(product_name)
-
     # Находим все данные на странице
     product_table = soup.find('div', class_=lambda x: x and x.strip() == 'sizes')
 
@@ -112,20 +110,13 @@ for url in prefinal_produkte_links:
             if small:
                 key = small.get_text(strip=True).replace(':', '').strip()
 
-                print(key, end='\t')
-
                 # Получаем значение
                 if p.find('span'):
                     value = p.find('span').get_text(strip=True)
                 else:
                     value = small.next_sibling.strip() if small.next_sibling else ""
-
-                print(value, end='\t')
-
                 new_tmp.append(value)
-
                 data[key] = value
-        print()
 
         if data['Available'] == available:
             with open('avista.txt', 'a') as file:
