@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 
-def get_links_with_produkte(url):
+def get_links_with_produkte(url, url_a):
     try:
         # Отправляем GET-запрос к сайту
         response = requests.get(url)
@@ -15,11 +15,11 @@ def get_links_with_produkte(url):
         # Находим все ссылки на странице
         all_links = soup.find_all('a', href=True)
 
-        # Фильтруем ссылки, содержащие "/produkte/"
+        # Фильтруем ссылки, содержащие "url_a"
         produkte_links = []
         for link in all_links:
             href = link['href']
-            if "/produkte/" in href:
+            if url_a in href:
                 # Преобразуем относительные ссылки в абсолютные
                 absolute_url = urljoin(url, href)
                 produkte_links.append(absolute_url)
@@ -37,7 +37,7 @@ def get_links_with_produkte(url):
 # Пример использования
 # website_url = "https://www.avista-lubes.de/produkte/"  # Замените на нужный URL
 website_url = "https://www.avista-lubes.de/produkte/"  # Замените на нужный URL
-produkte_links = get_links_with_produkte(website_url)
+produkte_links = get_links_with_produkte(website_url, '/produkte/')
 
 # product_ranges = []
 #
@@ -48,7 +48,7 @@ produkte_links = get_links_with_produkte(website_url)
 prefinal_produkte_links = []
 
 for link in produkte_links:
-    temp = get_links_with_produkte(link)
+    temp = get_links_with_produkte(link, '/produkte/')
     for teml_l in temp:
         if "produkte/detail/avista" in teml_l and teml_l not in prefinal_produkte_links:
             prefinal_produkte_links.append(teml_l)
