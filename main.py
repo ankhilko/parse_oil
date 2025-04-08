@@ -36,7 +36,7 @@ def get_links_with_produkte(url):
 
 # Пример использования
 # website_url = "https://www.avista-lubes.de/produkte/"  # Замените на нужный URL
-website_url = "https://www.avista-lubes.de/produkte/peak/"  # Замените на нужный URL
+website_url = "https://www.avista-lubes.de/produkte/"  # Замените на нужный URL
 produkte_links = get_links_with_produkte(website_url)
 
 # product_ranges = []
@@ -69,6 +69,8 @@ for url in prefinal_produkte_links:
     # Находим название продукта на странице
     product_name = soup.find('h1').text
 
+    print(product_name)
+
     # Находим все данные на странице
     product_table = soup.find('div', class_=lambda x: x and x.strip() == 'sizes')
 
@@ -78,6 +80,7 @@ for url in prefinal_produkte_links:
     size_blocks = soup.find_all('div', class_=lambda x: x and (
             'bulk' in x or
             'liter' in x or
+            'tooltip_ext' in x or
             x.startswith('liter')
     ))
 
@@ -101,10 +104,15 @@ for url in prefinal_produkte_links:
         }
 
         # Парсим каждое поле
+
+        new_tmp = []
+
         for p in block.find_all('p'):
             small = p.find('small')
             if small:
                 key = small.get_text(strip=True).replace(':', '').strip()
+
+                print(key, end='\t')
 
                 # Получаем значение
                 if p.find('span'):
@@ -112,16 +120,21 @@ for url in prefinal_produkte_links:
                 else:
                     value = small.next_sibling.strip() if small.next_sibling else ""
 
+                print(value, end='\t')
+
+                new_tmp.append(value)
+
                 data[key] = value
+        print()
 
         if data['Available'] == available:
             with open('avista.txt', 'a') as file:
                 file.write(product_name)
                 file.write('\t')
             with open('avista.txt', 'a') as file:
-                for k in data:
+                for item in new_tmp:
                     try:
-                        file.write(data[k])
+                        file.write(item)
                     except:
                         pass
                     file.write('\t')
