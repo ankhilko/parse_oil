@@ -71,7 +71,11 @@ for url in prefinal_produkte_links:
     # Находим название продукта на странице
     product_name = soup.find('h1').text.encode('utf-8').decode('utf-8')
 
-    product_description = soup.find('div', class_="producttext").text.replace('\t', ' ').replace('\n', ' ').encode('utf8').decode('utf-8')
+    product_description = soup.find('div', class_="producttext")
+    if product_description:
+        product_description = product_description.text.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ').encode('utf8').decode('utf-8')
+    else:
+        product_description = 'нет описания'
 
     # Находим все данные на странице
     product_table = soup.find('div', class_=lambda x: x and x.strip() == 'sizes')
